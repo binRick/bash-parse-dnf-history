@@ -13,8 +13,10 @@ trim_all() {
 DNF_HISTORY_CMD="dnf history list -4|grep '^[[:space:]].*[0-9].* | '"
 DNF_HISTORY_FILE=$(mktemp)
 if [[ "$USER" != "root" ]]; then
-    DNF_HISTORY_CMD="sudo -u root $DNF_HISTORY_CMD"
+    SUDO_PREFIX="sudo  -u root"
 fi
+DNF_HISTORY_CMD="$SUDO_PREFIX $DNF_HISTORY_CMD"
+DNF_HISTORY_INFO_CMD="$SUDO_PREFIX dnf history info"
 
 eval $DNF_HISTORY_CMD > $DNF_HISTORY_FILE
 DNF_HISTORY_CODE=$?
@@ -27,7 +29,12 @@ while read -r line; do
     _date="$(trim_all $(echo $line|cut -d'|' -f3))"
     _actions="$(trim_all $(echo $line|cut -d'|' -f4))"
     _altered="$(trim_all $(echo $line|cut -d'|' -f5))"
-    jo_cmd="jo id=$_id cmd=\"$_cmd\" date=\"$_date\" actions=\"$_actions\" altered=\"$_altered\" line=\"$line\""
+    _info_b64="$(eval $DNF_HISTORY_INFO_CMD|base64 -w0)"
+    _user="$(echo $_info_b64|base64 -d|grep '^User '|cut -d':' -f2|cut -d' ' -f2)"
+    #echo $_info_b64|base64 -d
+
+
+    jo_cmd="jo id=$_id user=$_user cmd=\"$_cmd\" date=\"$_date\" actions=\"$_actions\" altered=\"$_altered\""
     eval $jo_cmd
 done < $DNF_HISTORY_FILE
 
