@@ -5,6 +5,7 @@ DNF_TRANSACTIONS = {}
 DNF_HISTORY_CMD='sudo -u root dnf history list'
 DNF_HISTORY_INFO_CMD='sudo -u root dnf history info'
 DNF_HISTORY_TIMEOUT=10
+COLLECT_INFO = False
 
 EXEC = 'timeout {} {}'.format(
         DNF_HISTORY_TIMEOUT,
@@ -43,19 +44,20 @@ for l in out.decode().strip().splitlines():
           ).split(' '),
         }
         IP = subprocess.Popen(PSO['info_cmd'], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        try:
-            ip_out, ip_err = IP.communicate(timeout=10)
-        except:
-            IP.kill()
-            ip_out, ip_err = IP.communicate()
+        if COLLECT_INFO:
+            try:
+                ip_out, ip_err = IP.communicate(timeout=10)
+            except:
+                IP.kill()
+                ip_out, ip_err = IP.communicate()
 
-        PSO['info_lines'] = ip_out.decode().strip().splitlines()
-        
-        for _l in PSO['info_lines']:
-            if _l.startswith('Return-Code '):
-                PSO['info_return_code'] = _l.split(':')[1].strip()
-            if _l.startswith('User '):
-                PSO['info_user'] = _l.split(':')[1].strip().split(' ')[0]
+            PSO['info_lines'] = ip_out.decode().strip().splitlines()
+            
+            for _l in PSO['info_lines']:
+                if _l.startswith('Return-Code '):
+                    PSO['info_return_code'] = _l.split(':')[1].strip()
+                if _l.startswith('User '):
+                    PSO['info_user'] = _l.split(':')[1].strip().split(' ')[0]
 
         DNF_TRANSACTIONS[PSO['id']] = PSO
 
