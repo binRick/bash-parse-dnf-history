@@ -43,9 +43,9 @@ for l in out.decode().strip().splitlines():
             PS[0],
           ).split(' '),
         }
-        IP = subprocess.Popen(PSO['info_cmd'], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if COLLECT_INFO:
             try:
+                IP = subprocess.Popen(PSO['info_cmd'], shell=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 ip_out, ip_err = IP.communicate(timeout=10)
             except:
                 IP.kill()
